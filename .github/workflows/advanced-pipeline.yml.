@@ -1,0 +1,57 @@
+name: Advanced Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Целевое окружение"
+        type: choice
+        options:
+          - staging
+          - production
+        required: true
+      build_number:
+        description: "Номер сборки"
+        type: string
+        required: true
+      debug:
+        description: "Включить режим отладки"
+        type: boolean
+        required: true
+        default: false
+
+jobs:
+  linux-build:
+    name: Linux Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full Git history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Print inputs and count commits
+        env:
+          PIPELINE_ENVIRONMENT: ${{ inputs.environment }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          DEBUG_MODE: ${{ inputs.debug }}
+        run: |
+          printf 'Environment: %s\n' "$PIPELINE_ENVIRONMENT"
+          printf 'Build number: %s\n' "$BUILD_NUMBER"
+          printf 'Debug mode: %s\n' "$DEBUG_MODE"
+          printf 'Commits in checked-out history: '
+          git rev-list --count HEAD
+
+  windows-build:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+      - name: Print inputs
+        env:
+          PIPELINE_ENVIRONMENT: ${{ inputs.environment }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          DEBUG_MODE: ${{ inputs.debug }}
+        run: |
+          Write-Output "Environment: $env:PIPELINE_ENVIRONMENT"
+          Write-Output "Build number: $env:BUILD_NUMBER"
+          Write-Output "Debug mode: $env:DEBUG_MODE"
