@@ -1,0 +1,54 @@
+# Параметризованный конвейер с двумя параллельными задачами
+name: Advanced Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Окружение развертывания'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+      build_number:
+        description: 'Номер сборки'
+        required: true
+        type: string
+        default: '1'
+      debug:
+        description: 'отладка'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  # Задача 1: Linux (выполняется параллельно с windows-build)
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+      # Полная история коммитов
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Print inputs
+        run: |
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Build number: ${{ inputs.build_number }}"
+          echo "Debug mode: ${{ inputs.debug }}"
+
+      - name: Count commits
+        run: git rev-list --count HEAD
+
+  # Задача 2: Windows (независимая, параллельная)
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - name: Print inputs
+        run: |
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Build number: ${{ inputs.build_number }}"
+          echo "Debug mode: ${{ inputs.debug }}"
